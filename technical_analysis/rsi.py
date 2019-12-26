@@ -5,7 +5,7 @@ import copy
 
 
 class Rsi(object):
-    def __init__(self, data, period=14):
+    def __init__(self, data='historical_data/hist_data.npy', period=14):
         self.period = period
         self.prev_losses = None
         self.prev_gains = None

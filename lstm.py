@@ -18,13 +18,14 @@ from technical_analysis.coppock import Coppock
 
 def extract_data():
     # obtain labels
+    df = np.load('historical_data/hist_data.npy')
     labels = Genlabels(window=25, polyorder=3).labels
 
     # obtain features
-    macd = Macd(6, 12, 3).values
-    stoch_rsi = StochRsi(period=14).values
+    macd = Macd(data=df,short_pd=6,long_pd= 12,sig_pd= 3).values
+    stoch_rsi = StochRsi(data=df,period=14).value
     dpo = Dpo(period=4).values
-    cop = Coppock(wma_pd=10, roc_long=6, roc_short=3).values
+    cop = Coppock(data=df,wma_pd=10, roc_long=6, roc_short=3).values
     inter_slope = PolyInter(progress_bar=True).values
 
     # truncate bad values and shift label
@@ -77,7 +78,7 @@ def shape_data(X, y, timesteps=10):
     # scale data
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
-    joblib.dump(scaler, 'models/scaler.dump')
+    #joblib.dump(scaler, 'models/scaler.dump')
 
     # reshape data with timesteps
     reshaped = []
@@ -109,7 +110,7 @@ def build_model(X, y, val_x, val_y):
                   optimizer='adam',
                   metrics=['accuracy'])
 
-    model.fit(X, y, epochs=60, batch_size=8, shuffle=True, validation_data=(val_x, val_y))
+    model.fit(X, y, epochs=1, batch_size=8, shuffle=True, validation_data=(val_x, val_y))
 
     return model
 
@@ -117,7 +118,6 @@ if __name__ == '__main__':
     # load and reshape data
     X, y = extract_data()
     X, y = shape_data(X, y, timesteps=10)
-
     # ensure equal number of labels, shuffle, and split
     X_train, X_test, y_train, y_test = adjust_data(X, y)
     
@@ -126,4 +126,4 @@ if __name__ == '__main__':
 
     # build and train model
     model = build_model(X_train, y_train, X_test, y_test)
-    model.save('models/lstm_model.h5')
+    model.save('lstm_model.h5')
